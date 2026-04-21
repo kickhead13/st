@@ -1,26 +1,35 @@
 [package]
-name = "shtrack"
+name = "st"
 edition = "2024"
 version = "0.0.1"
 
 [[bin]]
-name = "shtrack-topic"
+name = "st-topic"
 path = "src/topic/main.rs"
 
 [[bin]]
-name = "shtrack-todo"
+name = "st-todo"
 path = "src/todo/main.rs"
 
 [[bin]]
-name = "shtrack-note"
+name = "st-note"
 path = "src/note/main.rs"
 
 [[bin]]
-name = "shtrack-list"
+name = "st-list"
 path = "src/list/main.rs"
 
 [[bin]]
-name = "shtrack-done"
+name = "st-done"
 path = "src/done/main.rs"
 
+[[bin]]
+name = "st-init"
+path = "src/init/main.rs"
+
+[[bin]]
+name = "st-pull"
+path = "src/pull/main.rs"
+
 [dependencies]
+clap = { version = "4.6.1", features = ["derive"] }

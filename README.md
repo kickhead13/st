@@ -1,5 +1,8 @@
 # shtrack
 
+## Dependencies
+`shtrack` uses `scp` for copying the files from the remote.
+
 ## Usage
 1. Create a topic.
 ```sh
@@ -19,7 +22,7 @@ shtrack todo chores Go buy some cat food.
 shtrack topic dev
 shtrack todo dev Fix shtrack: make it work with note taking.
 ```
-5. List all your to-do's:
+5. Listall your to-do's:
 ```sh
 shtrack list
 chores

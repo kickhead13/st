@@ -15,7 +15,7 @@ fn main() {
         std::process::exit(0);
     }
 
-    let program = format!("shtrack-{}", cli_args[1]);
+    let program = format!("st-{}", cli_args[1]);
     match std::process::Command::new(program).args(&cli_args[2..]).status() {
         Err(e) => {
             eprintln!("{}", e);
