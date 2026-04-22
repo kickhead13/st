@@ -4,24 +4,8 @@ edition = "2024"
 version = "0.0.1"
 
 [[bin]]
-name = "st-topic"
-path = "src/topic/main.rs"
-
-[[bin]]
-name = "st-todo"
-path = "src/todo/main.rs"
-
-[[bin]]
-name = "st-note"
-path = "src/note/main.rs"
-
-[[bin]]
 name = "st-list"
 path = "src/list/main.rs"
-
-[[bin]]
-name = "st-done"
-path = "src/done/main.rs"
 
 [[bin]]
 name = "st-init"

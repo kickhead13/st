@@ -1,23 +1,62 @@
-use clap::{Parser, ArgAction};
+use clap::{Parser};
 use std::fs;
 use std::io::{self, BufRead};
 
+fn check_labels(args: &Args, labels_path: &str) -> bool {
+    if let Some(labels) = &args.labels {
+        let labels_arr = labels.split(',');
+        if let Ok(file) = fs::File::open(&labels_path) {
+            for line in io::BufReader::new(file).lines().flatten() {
+                for label in labels_arr.clone() {
+                    if label == line {
+                        return true;
+                    }
+                }
+            }
+        }
+    } else {
+        return true;
+    }
+    return false;
+}
 
-fn list_tasks(args: Args, task_path: &str) {
+fn list_tasks(args: Args, task_path: &str, task: &str) {
     if args.verbose {
-        let desc_path = format!("{}/description.txt", task_path);
+        let labels_path = format!("{}/LABELS", task_path);
+        
+        if ! check_labels(&args, &labels_path) {
+            return;
+        }
+
+        println!("{}", task);
+        if let Ok(file) = fs::File::open(&labels_path) {
+            println!("  Labels:");
+            for line in io::BufReader::new(file).lines().flatten() {
+                println!("    {}", line);
+            }
+        }
+        let desc_path = format!("{}/DESC", task_path);
         if let Ok(desc) = fs::read_to_string(&desc_path) {
             println!("  Description:\n    {}", desc);
         }
-    }
-    if args.notes {
-        let notes_path = format!("{}/notes.txt", task_path);
+
+    } else if args.notes {
+        let notes_path = format!("{}/NOTES", task_path);
+
+        if ! check_labels(&args, &format!("{}/LABELS", task_path)) {
+            return;
+        }
         if let Ok(file) = fs::File::open(&notes_path) {
             println!("  Notes:");
             for line in io::BufReader::new(file).lines().flatten() {
                 println!("    {}", line);
             }
         }
+    } else {
+        if ! check_labels(&args, &format!("{}/LABELS", task_path)) {
+            return;
+        }
+        println!("{}", task);
     }
 }
 
@@ -37,12 +76,16 @@ struct Args {
     task: Option<String>,
 
     /// Show descriptions
-    #[arg(short, long, action = ArgAction::SetTrue)]
+    #[arg(short, long)]
     verbose: bool,
 
     /// Show notes
-    #[arg(short = 'n', long, action = ArgAction::SetTrue)]
+    #[arg(short = 'n', long)]
     notes: bool,
+
+    /// Filter listing by comma separated labels. (LABEL1=l1,LABEL2=l2)
+    #[arg(short, long)]
+    labels: Option<String>,
 }
 
 fn main() -> io::Result<()> {
@@ -51,21 +94,18 @@ fn main() -> io::Result<()> {
     let topics_path = ".st/topics";
     if let Some(topic) = &args.topic {
         let topic_path = format!("{}/{}", topics_path, topic);
-        if let Some(task) = &args.task {
-            println!("{}", task);
+        if let Some(task) = &args.task.clone() {
             let task_path = format!("{}/{}", topic_path, task);
-            list_tasks(args, &task_path);
+            list_tasks(args, &task_path, task);
         } else {
             if let Ok(entries) = fs::read_dir(&topic_path) {
                 for entry in entries.flatten() {
                     if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
                         let task_name = entry.file_name().to_string_lossy().to_string();
-                        println!("{}", task_name);
                         let task_entry_path = entry.path();
                         let task_path = task_entry_path.to_str().unwrap_or("Could not unwrap path to task.");
-
-                        list_tasks(args.clone(),task_path);
-                        // println!();
+                        
+                        list_tasks(args.clone(),task_path, &task_name);
                     }
                 }
             }
