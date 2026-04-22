@@ -31,5 +31,9 @@ path = "src/init/main.rs"
 name = "st-pull"
 path = "src/pull/main.rs"
 
+[[bin]]
+name = "st-add"
+path = "src/add/main.rs"
+
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }

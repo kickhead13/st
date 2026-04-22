@@ -3,9 +3,11 @@ Keep track of notes and things that you need to do, from the
 comfort of your shell.
 
 PROGRAM:
-    topic   create new topic
-    todo    create a todo point
-    note    write a note down on a certain topic
+    init    initialize the .st repository
+    add     add new topics, tasks, descriptions and notes
+    list    list topics, tasks, descriptions and notes
+    pull    pull from a remote repository
+    push    push to a remote repository
 "#;
 
 fn main() {

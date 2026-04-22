@@ -1,4 +1,15 @@
 use std::process::Command;
+use clap::Parser;
+
+/// st-init initializes a new shtrack local/remote repository.
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// To what path to pull from remote. (e.g.: ../) If not provided, it will pull to the current directory.
+    /// Paths can be absolute or relative. If the path does not exist, it will NOT be created.
+    #[arg(short, long)]
+    to: Option<String>,
+}
 
 fn run_scp_command(args: Vec<&str>) -> std::io::Result<()> {
 
