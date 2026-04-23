@@ -26,10 +26,10 @@ fn list_tasks(args: Args, task_path: &str, task: &str) {
         return;
     }
 
+    println!("{}", task);
     if args.verbose {
         let labels_path = format!("{}/LABELS", task_path);
         
-        println!("{}", task);
         if let Ok(file) = fs::File::open(&labels_path) {
             println!("  Labels:");
             for line in io::BufReader::new(file).lines().flatten() {
@@ -52,10 +52,6 @@ fn list_tasks(args: Args, task_path: &str, task: &str) {
                 println!("    {}", line);
             }
         }
-    }
-
-    if !args.verbose && !args.notes {
-        println!("{}", task);
     }
 }
 
