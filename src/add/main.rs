@@ -3,8 +3,22 @@ use std::process::Command;
 use std::fs;
 use std::io::{self};
 
-fn open_editor(topic: &str, task: &str, path: &str) -> io::Result<()> {
+fn open_editor(args: &Args, topic: &str, task: &str, path: &str) -> io::Result<()> {
     fs::create_dir_all(format!(".st/topics/{}/{}", topic, task))?;
+
+    if args.commit {
+        let git_log = Command::new("git")
+            .args(["log", "-1", "--pretty=format:%s (%h) by %aN<%ae> on %aD"])
+            .output()
+            .expect("Failed to execute git command");
+        let git_info = String::from_utf8_lossy(&git_log.stdout);
+        let content = fs::read_to_string(path).unwrap_or_default();
+        if content.ends_with('\n') {
+            fs::write(path, format!("{}## {}", content, git_info))?;
+        } else {
+            fs::write(path, format!("{}\n## {}", content, git_info))?;
+        }
+    }
     let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vi".to_string());
     Command::new(editor)
         .arg(&path)
@@ -39,6 +53,10 @@ struct Args {
     /// Add a note (opens $EDITOR)
     #[arg(long,short)]
     note: bool,
+
+    /// Should be used along side either one of -d, -l or -n to append git commit details before opening the editor.
+    #[arg(long,short)]
+    commit: bool,
 }
 
 fn main() -> io::Result<()> {
@@ -50,20 +68,30 @@ fn main() -> io::Result<()> {
             return Ok(());
         }
         if let Some(task) = &args.add {
-            fs::create_dir_all(format!(".st/topics/{}/{}", topic, task))?;
+            let template_path = ".st/templates/task";
+            let task_path = format!(".st/topics/{}/{}", topic, task);
+            fs::create_dir_all(&task_path)?;
+            for entry in fs::read_dir(template_path)? {
+                let entry = entry?;
+                let file_type = entry.file_type()?;
+                if file_type.is_file() {
+                    let file_name = entry.file_name();
+                    fs::copy(entry.path(), format!("{}/{}", task_path, file_name.to_string_lossy().to_string()))?;
+                }
+            }
             return Ok(());
         }
         if let (Some(task), true) = (&args.task, args.desc) {
-            let desc_path = format!(".st/topics/{}/{}/DESC", topic, task);
-            open_editor(topic, task, &desc_path)?;
+            let desc_path = format!(".st/topics/{}/{}/DESC.md", topic, task);
+            return open_editor(&args, topic, task, &desc_path);
         }
         if let (Some(task), true) = (&args.task, args.note) {
-            let notes_path = format!(".st/topics/{}/{}/NOTES", topic, task);
-            open_editor(topic, task, &notes_path)?;
+            let notes_path = format!(".st/topics/{}/{}/NOTES.md", topic, task);
+            return open_editor(&args, topic, task, &notes_path);
         }
         if let (Some(task), true) = (&args.task, args.labels) {
             let desc_path = format!(".st/topics/{}/{}/LABELS", topic, task);
-            open_editor(topic, task, &desc_path)?;
+            return open_editor(&args, topic, task, &desc_path);
         }
 
     }

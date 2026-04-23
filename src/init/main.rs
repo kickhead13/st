@@ -19,6 +19,12 @@ fn create_repository() {
         eprintln!("Failed to create .st directory. This could be due to it already existing or maybe not enough permissions. More details:\n{}", e);
         std::process::exit(1);
     }
+
+
+    if let Err(e) = std::fs::create_dir_all(".st/templates/task") {
+        eprintln!("Failed to create .st/templates directory. This could be due to it already existing or maybe not enough permissions. More details:\n{}", e);
+        std::process::exit(1);
+    }
 }
 fn main() {
     let args = Args::parse();

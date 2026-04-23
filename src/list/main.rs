@@ -21,13 +21,14 @@ fn check_labels(args: &Args, labels_path: &str) -> bool {
 }
 
 fn list_tasks(args: Args, task_path: &str, task: &str) {
+
+    if ! check_labels(&args, &format!("{}/LABELS", task_path)) {
+        return;
+    }
+
     if args.verbose {
         let labels_path = format!("{}/LABELS", task_path);
         
-        if ! check_labels(&args, &labels_path) {
-            return;
-        }
-
         println!("{}", task);
         if let Ok(file) = fs::File::open(&labels_path) {
             println!("  Labels:");
@@ -35,27 +36,25 @@ fn list_tasks(args: Args, task_path: &str, task: &str) {
                 println!("    {}", line);
             }
         }
-        let desc_path = format!("{}/DESC", task_path);
+        let desc_path = format!("{}/DESC.md", task_path);
         if let Ok(desc) = fs::read_to_string(&desc_path) {
             println!("  Description:\n    {}", desc);
         }
 
-    } else if args.notes {
-        let notes_path = format!("{}/NOTES", task_path);
+    }
+    
+    if args.notes {
+        let notes_path = format!("{}/NOTES.md", task_path);
 
-        if ! check_labels(&args, &format!("{}/LABELS", task_path)) {
-            return;
-        }
         if let Ok(file) = fs::File::open(&notes_path) {
             println!("  Notes:");
             for line in io::BufReader::new(file).lines().flatten() {
                 println!("    {}", line);
             }
         }
-    } else {
-        if ! check_labels(&args, &format!("{}/LABELS", task_path)) {
-            return;
-        }
+    }
+
+    if !args.verbose && !args.notes {
         println!("{}", task);
     }
 }
