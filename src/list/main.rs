@@ -6,13 +6,13 @@ fn check_labels(args: &Args, labels_path: &str) -> bool {
     if let Some(labels) = &args.labels {
         let labels_arr = labels.split(',');
         if let Ok(file) = fs::File::open(&labels_path) {
-            for line in io::BufReader::new(file).lines().flatten() {
-                for label in labels_arr.clone() {
-                    if label == line {
-                        return true;
-                    }
+            let lines = io::BufReader::new(file).lines().flatten().collect::<Vec<String>>();
+            for label in labels_arr.clone() {
+                if ! lines.contains(&label.to_string()) {
+                    return false;
                 }
             }
+            return true;
         }
     } else {
         return true;
@@ -20,13 +20,66 @@ fn check_labels(args: &Args, labels_path: &str) -> bool {
     return false;
 }
 
-fn list_tasks(args: Args, task_path: &str, task: &str) {
+fn list_task_markdown(args: &Args, task_path: &str, task: &str) {
+    let mut output = format!("# {}", task);
+
+    if let Ok(file) = fs::File::open(format!("{}/SHORT_DESC.md", task_path)) {
+        if let Some(first_line) = io::BufReader::new(file).lines().flatten().next() {
+            output.push_str(&format!(" ({})", first_line));
+        }
+    }
+
+    println!("{}", output);
+
+    if args.verbose {
+        let labels_path = format!("{}/LABELS", task_path);
+        
+        if let Ok(file) = fs::File::open(&labels_path) {
+            println!("**Labels:**");
+            for line in io::BufReader::new(file).lines().flatten() {
+                println!("- {}", line);
+            }
+        }
+        let desc_path = format!("{}/DESC.md", task_path);
+        if let Ok(desc) = fs::read_to_string(&desc_path) {
+            println!("## Description:\n{}", desc);
+        }
+
+    }
+    
+    if args.notes {
+        let notes_path = format!("{}/NOTES.md", task_path);
+
+        if let Ok(file) = fs::File::open(&notes_path) {
+            println!("## Notes:");
+            for line in io::BufReader::new(file).lines().flatten() {
+                println!("{}", line);
+            }
+        }
+    }
+}
+
+fn list_task(args: Args, task_path: &str, task: &str) {
 
     if ! check_labels(&args, &format!("{}/LABELS", task_path)) {
         return;
     }
 
-    println!("{}", task);
+    if args.markdown {
+        list_task_markdown(&args, task_path, task);
+        return;
+    }
+
+    if let Ok(file) = fs::File::open(format!("{}/SHORT_DESC.md", task_path)) {
+        if let Some(first_line) = io::BufReader::new(file).lines().flatten().next() {
+            println!("{} ({})", task, first_line);
+        } else {
+            return;
+        }
+    } else {
+        println!("{}", task);
+    }
+
     if args.verbose {
         let labels_path = format!("{}/LABELS", task_path);
         
@@ -81,6 +134,10 @@ struct Args {
     /// Filter listing by comma separated labels. (LABEL1=l1,LABEL2=l2)
     #[arg(short, long)]
     labels: Option<String>,
+
+    /// Format output as Markdown.
+    #[arg(short='M', long)]
+    markdown: bool,
 }
 
 fn main() -> io::Result<()> {
@@ -91,7 +148,7 @@ fn main() -> io::Result<()> {
         let topic_path = format!("{}/{}", topics_path, topic);
         if let Some(task) = &args.task.clone() {
             let task_path = format!("{}/{}", topic_path, task);
-            list_tasks(args, &task_path, task);
+            list_task(args, &task_path, task);
         } else {
             if let Ok(entries) = fs::read_dir(&topic_path) {
                 for entry in entries.flatten() {
@@ -100,7 +157,7 @@ fn main() -> io::Result<()> {
                         let task_entry_path = entry.path();
                         let task_path = task_entry_path.to_str().unwrap_or("Could not unwrap path to task.");
                         
-                        list_tasks(args.clone(),task_path, &task_name);
+                        list_task(args.clone(),task_path, &task_name);
                     }
                 }
             }

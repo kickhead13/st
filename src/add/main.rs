@@ -14,9 +14,9 @@ fn open_editor(args: &Args, topic: &str, task: &str, path: &str) -> io::Result<(
         let git_info = String::from_utf8_lossy(&git_log.stdout);
         let content = fs::read_to_string(path).unwrap_or_default();
         if content.ends_with('\n') {
-            fs::write(path, format!("{}## {}", content, git_info))?;
+            fs::write(path, format!("{}### {}", content, git_info))?;
         } else {
-            fs::write(path, format!("{}\n## {}", content, git_info))?;
+            fs::write(path, format!("{}\n### {}", content, git_info))?;
         }
     }
     let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vi".to_string());
@@ -57,6 +57,10 @@ struct Args {
     /// Should be used along side either one of -d, -l or -n to append git commit details before opening the editor.
     #[arg(long,short)]
     commit: bool,
+
+    /// Add a short (one line) description to a task.
+    #[arg(long,short='s')]
+    short_desc: bool,
 }
 
 fn main() -> io::Result<()> {
@@ -83,17 +87,21 @@ fn main() -> io::Result<()> {
         }
         if let (Some(task), true) = (&args.task, args.desc) {
             let desc_path = format!(".st/topics/{}/{}/DESC.md", topic, task);
-            return open_editor(&args, topic, task, &desc_path);
+            open_editor(&args, topic, task, &desc_path)?;
+        }
+        if let (Some(task), true) = (&args.task, args.short_desc) {
+            let desc_path = format!(".st/topics/{}/{}/SHORT_DESC.md", topic, task);
+            open_editor(&args, topic, task, &desc_path)?;
         }
         if let (Some(task), true) = (&args.task, args.note) {
             let notes_path = format!(".st/topics/{}/{}/NOTES.md", topic, task);
-            return open_editor(&args, topic, task, &notes_path);
+            open_editor(&args, topic, task, &notes_path)?;
         }
         if let (Some(task), true) = (&args.task, args.labels) {
             let desc_path = format!(".st/topics/{}/{}/LABELS", topic, task);
-            return open_editor(&args, topic, task, &desc_path);
+            open_editor(&args, topic, task, &desc_path)?;
         }
-
+        return Ok(());
     }
     eprintln!("Invalid argument combination.");
     Ok(())
