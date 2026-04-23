@@ -43,11 +43,11 @@ Make.CI.And.Unit.Tests
 ## Installing
 Clone the repository:
 ```sh
-git clone https://github.com/kickhead13/shtrack
+git clone https://github.com/kickhead13/st
 ```
 And install it:
 ```sh
-cd shtrack
+cd st
 cargo install --path .
 export PATH="$PATH:$HOME/.cargo/bin" # you should probably add this to your .bashrc if you'd like st to always be available
 ```

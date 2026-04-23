@@ -1,6 +1,5 @@
-static HELP_MESSAGE: &str = r#"Usage: shtrack <PROGRAM>
-Keep track of notes and things that you need to do, from the
-comfort of your shell.
+static HELP_MESSAGE: &str = r#"Usage: st <PROGRAM>
+Track your tasks... in your Shell.
 
 PROGRAM:
     init    initialize the .st repository
@@ -8,6 +7,7 @@ PROGRAM:
     list    list topics, tasks, descriptions and notes
     pull    pull from a remote repository
     push    push to a remote repository
+    remove  remove topics, tasks, descriptions and notes
 "#;
 
 fn main() {
