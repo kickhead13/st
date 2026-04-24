@@ -54,7 +54,7 @@ export PATH="$PATH:$HOME/.cargo/bin" # you should probably add this to your .bas
 ## Usage
 Initializing a `st` repository:
 ```sh
-# this creates a bare bones .st directory in your current workding directory
+# this creates a bare bones st directory in your current workding directory
 st init 
 ```
 Create a topic:

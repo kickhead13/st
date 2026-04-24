@@ -158,7 +158,7 @@ fn main() -> io::Result<()> {
         }   
     }
 
-    let topics_path = ".st/topics";
+    let topics_path = "st/topics";
     if let Some(topic) = &args.topic {
         let topic_path = format!("{}/{}", topics_path, topic);
         if let Some(task) = &args.task.clone() {

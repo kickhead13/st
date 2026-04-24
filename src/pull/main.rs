@@ -26,7 +26,7 @@ fn run_scp_command(args: Vec<&str>) -> std::io::Result<()> {
 
 fn clone_st_dir(ssh_uri: &str, local_dir: &str) -> std::io::Result<()> {
 
-    let remote_st = format!("{}/.st", ssh_uri);
+    let remote_st = format!("{}/st", ssh_uri);
 
     let flags = vec!["-r", &remote_st, local_dir]; 
 
@@ -41,16 +41,16 @@ fn clone_st_dir(ssh_uri: &str, local_dir: &str) -> std::io::Result<()> {
 }
 
 fn main() {
-    let remote_uri = match std::fs::read_to_string(".st/REMOTE") {
+    let remote_uri = match std::fs::read_to_string("st/REMOTE") {
         Ok(uri) => uri.trim().to_string(),
         Err(e) => {
-            eprintln!("Failed to read remote URI from .st/REMOTE. Make sure you have initialized the repository and set a remote URI. More details:\n{}", e);
+            eprintln!("Failed to read remote URI from st/REMOTE. Make sure you have initialized the repository and set a remote URI. More details:\n{}", e);
             std::process::exit(1);
         }
     };
 
     if let Err(e) = clone_st_dir(&remote_uri, ".") {
-        eprintln!("Failed to clone .st directory from remote. More details:\n{}", e);
+        eprintln!("Failed to clone st directory from remote. More details:\n{}", e);
         std::process::exit(1);
     }
 }

@@ -2,7 +2,7 @@ static HELP_MESSAGE: &str = r#"Usage: st <PROGRAM>
 Track your tasks... in your Shell.
 
 PROGRAM:
-    init    initialize the .st repository
+    init    initialize the st repository
     add     add new topics, tasks, descriptions and notes
     list    list topics, tasks, descriptions and notes
     pull    pull from a remote repository

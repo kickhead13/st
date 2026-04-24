@@ -1,4 +1,5 @@
 # shellcheck disable=all
+# TODO: We will need to re-enable these... at some point. 
 _st_complete()
 {
     local cur prev words cword
@@ -16,7 +17,7 @@ init
 list
 remove'
     local opts="-T -t"
-    local topics_dir="$(pwd)/.st/topics"
+    local topics_dir="$(pwd)/st/topics"
 
     if [[ $cword -eq 1  ]]; then
         COMPREPLY=( $(compgen -W "${subcommands[@]}" -- "$cur") )

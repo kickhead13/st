@@ -5,7 +5,7 @@ use std::io::{self};
 use std::path::Path;
 
 fn open_editor(args: &Args, topic: &str, task: &str, path: &str) -> io::Result<()> {
-    fs::create_dir_all(format!(".st/topics/{}/{}", topic, task))?;
+    fs::create_dir_all(format!("st/topics/{}/{}", topic, task))?;
 
     if args.commit {
         let git_log = Command::new("git")
@@ -69,16 +69,16 @@ fn main() -> io::Result<()> {
 
     if let Some(topic) = &args.topic {
         if args.add.is_none() && args.task.is_none() && !args.desc && !args.note {
-            fs::create_dir_all(format!(".st/topics/{}", topic))?;
+            fs::create_dir_all(format!("st/topics/{}", topic))?;
             return Ok(());
         }
         if let Some(task) = &args.add {
-            let template_path = if Path::new(&format!(".st/templates/task.{}", topic)).exists() {
-                format!(".st/templates/task.{}", topic)
+            let template_path = if Path::new(&format!("st/templates/task.{}", topic)).exists() {
+                format!("st/templates/task.{}", topic)
             } else {
-                ".st/templates/task".to_string()
+                "st/templates/task".to_string()
             };
-            let task_path = format!(".st/topics/{}/{}", topic, task);
+            let task_path = format!("st/topics/{}/{}", topic, task);
             fs::create_dir_all(&task_path)?;
             for entry in fs::read_dir(template_path)? {
                 let entry = entry?;
@@ -91,19 +91,19 @@ fn main() -> io::Result<()> {
             return Ok(());
         }
         if let (Some(task), true) = (&args.task, args.desc) {
-            let desc_path = format!(".st/topics/{}/{}/DESC.md", topic, task);
+            let desc_path = format!("st/topics/{}/{}/DESC.md", topic, task);
             open_editor(&args, topic, task, &desc_path)?;
         }
         if let (Some(task), true) = (&args.task, args.short_desc) {
-            let desc_path = format!(".st/topics/{}/{}/SHORT_DESC.md", topic, task);
+            let desc_path = format!("st/topics/{}/{}/SHORT_DESC.md", topic, task);
             open_editor(&args, topic, task, &desc_path)?;
         }
         if let (Some(task), true) = (&args.task, args.note) {
-            let notes_path = format!(".st/topics/{}/{}/NOTES.md", topic, task);
+            let notes_path = format!("st/topics/{}/{}/NOTES.md", topic, task);
             open_editor(&args, topic, task, &notes_path)?;
         }
         if let (Some(task), true) = (&args.task, args.labels) {
-            let desc_path = format!(".st/topics/{}/{}/LABELS", topic, task);
+            let desc_path = format!("st/topics/{}/{}/LABELS", topic, task);
             open_editor(&args, topic, task, &desc_path)?;
         }
         return Ok(());

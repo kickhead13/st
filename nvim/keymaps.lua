@@ -18,7 +18,7 @@ function keymaps.setup()
         if not vim.v.shell_error == 0 then
           vim.notify("st failed", vim.log.levels.ERROR)
         end
-        local base = ".st/topics/" .. topic .. "/" .. task .. "/"
+        local base = "st/topics/" .. topic .. "/" .. task .. "/"
         local files = {
           "DESC.md",
           "SHORT_DESC.md",
