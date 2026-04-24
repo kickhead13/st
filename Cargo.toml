@@ -27,3 +27,4 @@ path = "src/server/main.rs"
 actix-web = "4.13.0"
 clap = { version = "4.6.1", features = ["derive"] }
 markdown = "1.0.0"
+toml = "1.1.2"

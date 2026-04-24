@@ -1,6 +1,7 @@
 use clap::{Parser};
 use std::fs;
 use std::io::{self, BufRead};
+use toml;
 
 fn check_labels(args: &Args, labels_path: &str) -> bool {
     if let Some(labels) = &args.labels {
@@ -141,7 +142,21 @@ struct Args {
 }
 
 fn main() -> io::Result<()> {
-    let args = Args::parse();
+    let mut args = Args::parse();
+
+    if let Ok(st_toml) = fs::read_to_string("st.toml") {
+        if let Ok(parsed) = st_toml.parse::<toml::Table>() {
+            if let Some(active) = parsed.get("active").and_then(|v| v.as_str()) {
+                let active_labels = active.split(',').map(|s| s.trim()).collect::<Vec<&str>>().join(",");
+                if let Some(existing_labels) = &args.labels {
+                    let combined_labels = format!("{},{}", existing_labels, active_labels);
+                    args.labels = Some(combined_labels);
+                } else {
+                    args.labels = Some(active_labels);
+                }
+            }
+        }   
+    }
 
     let topics_path = ".st/topics";
     if let Some(topic) = &args.topic {

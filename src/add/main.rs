@@ -2,6 +2,7 @@ use clap::Parser;
 use std::process::Command;
 use std::fs;
 use std::io::{self};
+use std::path::Path;
 
 fn open_editor(args: &Args, topic: &str, task: &str, path: &str) -> io::Result<()> {
     fs::create_dir_all(format!(".st/topics/{}/{}", topic, task))?;
@@ -72,7 +73,11 @@ fn main() -> io::Result<()> {
             return Ok(());
         }
         if let Some(task) = &args.add {
-            let template_path = ".st/templates/task";
+            let template_path = if Path::new(&format!(".st/templates/task.{}", topic)).exists() {
+                format!(".st/templates/task.{}", topic)
+            } else {
+                ".st/templates/task".to_string()
+            };
             let task_path = format!(".st/topics/{}/{}", topic, task);
             fs::create_dir_all(&task_path)?;
             for entry in fs::read_dir(template_path)? {
