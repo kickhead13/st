@@ -112,6 +112,10 @@ fn list_task(args: Args, task_path: &str, task: &str) {
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
 struct Args {
+    /// Bypass config.
+    #[arg(short, long)]
+    bypass_config: bool,
+
     /// List all tasks in all topics.
     #[arg(short, long)]
     all: bool,
@@ -144,7 +148,7 @@ struct Args {
 fn main() -> io::Result<()> {
     let mut args = Args::parse();
 
-    if let Ok(st_toml) = fs::read_to_string("st.toml") {
+    if let Ok(st_toml) = fs::read_to_string("st.toml") && !args.bypass_config {
         if let Ok(parsed) = st_toml.parse::<toml::Table>() {
             if let Some(active) = parsed.get("active").and_then(|v| v.as_str()) {
                 let active_labels = active.split(',').map(|s| s.trim()).collect::<Vec<&str>>().join(",");
