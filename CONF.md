@@ -1,7 +1,8 @@
 # Configuring st
 `st` uses a toml file (called `st.toml`) for configuring it. Currently, there aren't really that many options. But here is a short list:
 
-***active***
+## ***active***
+
 The `active` parameter allows you to set labels that always get used in `st list` operations. Using this parameter you can simulate "currently active sprint."
 ```toml
 # st.toml
@@ -25,7 +26,8 @@ st list -l'SPRINT:1,ASSIGNEE:user1,COMPONENT:st'
 ```
 The **active** parameter can be overwritten using the `-b` or `--bypass-config` flags.
 
-***apply***
+## ***apply***
+
 Here, by "applying" we mean what `st apply` does (i.e. Transforming `{topic}/STATE.md` into proper task attributes). This parameter has 4 possible states:
 ```toml
 apply = "enabled" # default
