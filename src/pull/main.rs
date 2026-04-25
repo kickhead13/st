@@ -1,7 +1,7 @@
 use std::process::Command;
 use clap::Parser;
 
-/// st-init initializes a new shtrack local/remote repository.
+/// Initializes a new shtrack local/remote repository.
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {

@@ -28,6 +28,7 @@ fn open_editor(args: &Args, topic: &str, task: &str, path: &str) -> io::Result<(
     Ok(())
 }
 
+/// Used to create and edit topics and tasks.
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
 struct Args {
@@ -59,7 +60,9 @@ struct Args {
     #[arg(long,short)]
     commit: bool,
 
-    /// Add a short (one line) description to a task.
+    /// Add a short (one line) description to a task. It will be added to task name when listing tasks. (opens $EDITOR)
+    /// Keep in mind that you can write more than one line in the short description file, but only
+    /// the first line will be used as the short description when listing tasks.
     #[arg(long,short='s')]
     short_desc: bool,
 }

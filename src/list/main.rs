@@ -1,12 +1,11 @@
 use clap::{Parser};
 use std::fs;
 use std::io::{self, BufRead};
-use toml;
-
+use std::os::unix::io::AsRawFd;
 fn check_labels(args: &Args, labels_path: &str) -> bool {
     if let Some(labels) = &args.labels {
         let labels_arr = labels.split(',');
-        if let Ok(file) = fs::File::open(&labels_path) {
+        if let Ok(file) = fs::File::open(labels_path) {
             let lines = io::BufReader::new(file).lines().flatten().collect::<Vec<String>>();
             for label in labels_arr.clone() {
                 if ! lines.contains(&label.to_string()) {
@@ -18,16 +17,16 @@ fn check_labels(args: &Args, labels_path: &str) -> bool {
     } else {
         return true;
     }
-    return false;
+    false
 }
 
 fn list_task_markdown(args: &Args, task_path: &str, task: &str) {
-    let mut output = format!("# {}", task);
+    let mut output = format!("\n# {}", task);
 
-    if let Ok(file) = fs::File::open(format!("{}/SHORT_DESC.md", task_path)) {
-        if let Some(first_line) = io::BufReader::new(file).lines().flatten().next() {
-            output.push_str(&format!(" ({})", first_line));
-        }
+    if let Ok(file) = fs::File::open(format!("{}/SHORT_DESC.md", task_path)) 
+    && let Some(first_line) = io::BufReader::new(file).lines().flatten().next() 
+    && !args.state_md {
+        output.push_str(&format!(" ({})", first_line));
     }
 
     println!("{}", output);
@@ -109,6 +108,8 @@ fn list_task(args: Args, task_path: &str, task: &str) {
     }
 }
 
+/// Lists tasks and topics. Can be used to print out information in either hierarchical or markdown
+/// format.
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about)]
 struct Args {
@@ -143,27 +144,48 @@ struct Args {
     /// Format output as Markdown.
     #[arg(short='M', long)]
     markdown: bool,
+
+    /// Outputs to STATE.md of the specified topic iff --topic and --markdown are set.
+    /// Useful if you want to edit the contents of a topic in bulk (in the generated STATE.md) and then apply it with `st apply`.
+    #[arg(short='S', long)]
+    state_md: bool,
 }
 
 fn main() -> io::Result<()> {
     let mut args = Args::parse();
 
-    if let Ok(st_toml) = fs::read_to_string("st.toml") && !args.bypass_config {
-        if let Ok(parsed) = st_toml.parse::<toml::Table>() {
-            if let Some(active) = parsed.get("active").and_then(|v| v.as_str()) {
-                let active_labels = active.split(',').map(|s| s.trim()).collect::<Vec<&str>>().join(",");
-                if let Some(existing_labels) = &args.labels {
-                    let combined_labels = format!("{},{}", existing_labels, active_labels);
-                    args.labels = Some(combined_labels);
-                } else {
-                    args.labels = Some(active_labels);
-                }
-            }
-        }   
+    if let Ok(st_toml) = fs::read_to_string("st.toml") && !args.bypass_config 
+    && let Ok(parsed) = st_toml.parse::<toml::Table>() 
+    && let Some(active) = parsed.get("active").and_then(|v| v.as_str()) {
+        let active_labels = active.split(',').map(|s| s.trim()).collect::<Vec<&str>>().join(",");
+        if let Some(existing_labels) = &args.labels {
+            let combined_labels = format!("{},{}", existing_labels, active_labels);
+            args.labels = Some(combined_labels);
+        } else {
+            args.labels = Some(active_labels);
+        }
     }
 
     let topics_path = "st/topics";
     if let Some(topic) = &args.topic {
+
+        if ! args.markdown && args.state_md {
+            eprintln!("Error: --state-md can only be used with --markdown.");
+            std::process::exit(1);
+        }
+
+        if args.state_md {
+            let state_md_path = format!("{}/{}/STATE.md", topics_path, topic);
+            let file = fs::File::create(&state_md_path)?;
+
+            let fd = file.as_raw_fd();
+    
+            unsafe {
+                // TODO: figure out if this can be done without unsage code...
+                libc::dup2(fd, 1);
+            }
+        }
+
         let topic_path = format!("{}/{}", topics_path, topic);
         if let Some(task) = &args.task.clone() {
             let task_path = format!("{}/{}", topic_path, task);
