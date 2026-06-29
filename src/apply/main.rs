@@ -41,8 +41,6 @@ fn main() {
             }
         }
     }
-
-
 }
 
 fn apply_state(state_file: &Path, topic_dir: &Path) {
@@ -71,9 +69,9 @@ fn apply_state(state_file: &Path, topic_dir: &Path) {
                         if let Some(label) = line.trim().strip_prefix("- ") {
                             labels.push(label.to_string());
                         }
-                    }
-                    "description" => description.push_str(line),
-                    "notes" => notes.push_str(line),
+                    },
+                    "description" => description.push_str(&format!("{}\n", line)),
+                    "notes" => notes.push_str(&format!("{}\n", line)),
                     _ => {}
                 }
             }
@@ -84,5 +82,3 @@ fn apply_state(state_file: &Path, topic_dir: &Path) {
         fs::write(task_dir.join("NOTES.md"), notes).unwrap();
     }
 }
-
-
