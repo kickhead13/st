@@ -60,7 +60,6 @@ fn list_task_markdown(args: &Args, task_path: &str, task: &str) {
 }
 
 fn list_task(args: Args, task_path: &str, task: &str) {
-
     if ! check_labels(&args, &format!("{}/LABELS", task_path)) {
         return;
     }
@@ -70,12 +69,9 @@ fn list_task(args: Args, task_path: &str, task: &str) {
         return;
     }
 
-    if let Ok(file) = fs::File::open(format!("{}/SHORT_DESC.md", task_path)) {
-        if let Some(first_line) = io::BufReader::new(file).lines().flatten().next() {
+    if let Ok(file) = fs::File::open(format!("{}/SHORT_DESC.md", task_path)) &&
+    let Some(first_line) = io::BufReader::new(file).lines().flatten().next() {
             println!("{} ({})", task, first_line);
-        } else {
-            return;
-        }
     } else {
         println!("{}", task);
     }
@@ -151,6 +147,43 @@ struct Args {
     state_md: bool,
 }
 
+fn list_topic(topic: &str, args: Args, topics_path: &str) -> io::Result<()> {
+    if ! args.markdown && args.state_md {
+        eprintln!("Error: --state-md can only be used with --markdown.");
+        std::process::exit(1);
+    }
+
+    if args.state_md {
+        let state_md_path = format!("{}/{}/STATE.md", topics_path, topic);
+        let file = fs::File::create(&state_md_path)?;
+
+        let fd = file.as_raw_fd();
+
+        unsafe {
+            // TODO: figure out if this can be done without unsafe code...
+            libc::dup2(fd, 1);
+        }
+    }
+
+    let topic_path = format!("{}/{}", topics_path, topic);
+    if let Some(task) = &args.task.clone() {
+        let task_path = format!("{}/{}", topic_path, task);
+        list_task(args, &task_path, task);
+    } else {
+        if let Ok(entries) = fs::read_dir(&topic_path) {
+            for entry in entries.flatten() {
+                if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
+                    let task_name = entry.file_name().to_string_lossy().to_string();
+                    let task_entry_path = entry.path();
+                    let task_path = task_entry_path.to_str().unwrap_or("Could not unwrap path to task.");
+                    
+                    list_task(args.clone(),task_path, &task_name);
+                }
+            }
+        }
+    }
+    Ok(())
+}
 fn main() -> io::Result<()> {
     let mut args = Args::parse();
 
@@ -168,47 +201,18 @@ fn main() -> io::Result<()> {
 
     let topics_path = "st/topics";
     if let Some(topic) = &args.topic {
-
-        if ! args.markdown && args.state_md {
-            eprintln!("Error: --state-md can only be used with --markdown.");
-            std::process::exit(1);
-        }
-
-        if args.state_md {
-            let state_md_path = format!("{}/{}/STATE.md", topics_path, topic);
-            let file = fs::File::create(&state_md_path)?;
-
-            let fd = file.as_raw_fd();
-    
-            unsafe {
-                // TODO: figure out if this can be done without unsage code...
-                libc::dup2(fd, 1);
-            }
-        }
-
-        let topic_path = format!("{}/{}", topics_path, topic);
-        if let Some(task) = &args.task.clone() {
-            let task_path = format!("{}/{}", topic_path, task);
-            list_task(args, &task_path, task);
-        } else {
-            if let Ok(entries) = fs::read_dir(&topic_path) {
-                for entry in entries.flatten() {
-                    if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
-                        let task_name = entry.file_name().to_string_lossy().to_string();
-                        let task_entry_path = entry.path();
-                        let task_path = task_entry_path.to_str().unwrap_or("Could not unwrap path to task.");
-                        
-                        list_task(args.clone(),task_path, &task_name);
-                    }
-                }
-            }
-        }
+        return list_topic(topic, args.clone(), topics_path);
     } else {
         // List all topics
         if let Ok(entries) = fs::read_dir(topics_path) {
             for entry in entries.flatten() {
                 if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
-                    println!("{}", entry.file_name().to_string_lossy());
+                    let topic = &format!("{}", entry.file_name().to_string_lossy());
+                    if args.all {
+                        return list_topic(topic, args, topics_path);
+                    } else {
+                        println!("{}", topic);
+                    }
                 }
             }
         }
