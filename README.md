@@ -50,6 +50,8 @@ And install it:
 cd st
 cargo install --path .
 export PATH="$PATH:$HOME/.cargo/bin" # you should probably add this to your .bashrc if you'd like st to always be available
+# or you may want to copy the st executables to a directory that's in your PATH
+cp "${HOME}/.cargo/bin/st*" "${HOME}/my-executables/"
 ```
 ## Usage
 Initializing a `st` repository:
